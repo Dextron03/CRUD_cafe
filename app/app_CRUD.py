@@ -31,12 +31,23 @@ class CRUD(Conexion):
                 continue
 
             if opcion == 1:
-                print("Has elegido Crear.")
-                query = self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-                for tablas in query:
-                    contador =+ 1
-                    print(f"\n{contador}.{''.join(tablas)}")
+                print("\nHas elegido Crear.")
+                self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+                query = self.cursor.fetchall()
                 
+                contador = 0
+                for tablas in query:
+                    contador = contador + 1
+                    print(f"{contador}.{''.join(tablas)}")
+                
+                selec_table : str = int(input(f"¿A que base de datos desea insertarle datos? "))
+                if selec_table == 1:
+                    nom_empleado : str = input("Ingrese el nombre del empleado: ")
+                    ape_part_empleado : str = input(f"Ingrese el apellido_paterno de {nom_empleado}: ")
+                    ape_mart_empleado : str = input(f"Ingrese el apellido_materno de {nom_empleado}: ")
+                    edad_empleado : str = input(f"Ingrese la edad del empleado: ")
+                    self.cursor.execute(f"INSERT INTO "+"".join(query[0])+f"(nombre_empleado, apellido_paterno, apellido_materno, edad) VALUES('{nom_empleado}','{ape_part_empleado}','{ape_mart_empleado}','{edad_empleado}');")
+                    self.conn.commit()
                 break    
             elif opcion == 2:
                 print("Has elegido Leer.")
