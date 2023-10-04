@@ -6,16 +6,26 @@ class CRUD(Conexion):
     def __init__(self, name_db):
         super().__init__(name_db)
 
-    def obtener_decision_seguir(self):
+    def obtener_decision_seguir(self) -> int:
+        """Este retorna un input el cual te permite seguir o salir del CRUD."""
         while True:
-            try:
-                seguir = int(input("¿Desea seguir con el proceso?:\nPara seguir, digite --> 1\nPara salir, digite --> 2\nIngrese su opción: "))
-            
-            except ValueError:
-                print("\nLa respuesta debe ser un entero del 1 al 2, animal (ㆆ_ㆆ).")
-            if isinstance(seguir, int):
+            while True:
+                try:
+                    seguir = int(input("\n¿Desea seguir con el proceso?:\nPara seguir, digite --> 1\nPara salir, digite --> 2\nIngrese su opción: "))
+                    
+                except ValueError:
+                    seguir = print("\nLa respuesta debe ser un entero del 1 al 2, animal (ㆆ_ㆆ).")
+                if isinstance(seguir, int):
+                    break
+                else:
+                    continue
+            if seguir == 1 or seguir == 2:
                 break
+            else:
+                print("Respuesta invalida, intetalo.") 
+                continue   
         return seguir
+            
 
     def query_gr_tabla(self):
         """Busca las tablas que existen en la base de datos y retorna una lista con el nombre de las tablas."""
@@ -23,33 +33,48 @@ class CRUD(Conexion):
         query = self.cursor.fetchall()
         return query
     
-    # def generar_tablas(self): Agregar al codigo
-    #     # Este bloque de codigo sirve para imprimir las tablas que hay en la base de datos.
-    #     contador = 0
-    #     for tablas in self.query:
-    #         contador = contador + 1
-    #         print(f"{contador}.{''.join(tablas)}")
+    def generar_tablas(self): #Agregar al codigo --> listo
+        """Esta toma todas las tablas contenidas por la funcion query_gr_tabla y las imprime."""
+        # Este bloque de codigo sirve para imprimir las tablas que hay en la base de datos.
+        imprimir_query = self.query_gr_tabla()
+        contador = 0
+        for tablas in imprimir_query:
+            contador = contador + 1
+            print(f"{contador}.{''.join(tablas)}")
 
+    def funtion_selec_table(self):
+        """Esta contiene un input el cual permitira elegir la tabla con la que quieres trabajar."""
+        while True:        
+            try:
+                selec_table : int = int(input(f"\n¿A que tabla desea insertarle datos? "))
+                if isinstance(selec_table, int):
+                    continue
+                else:
+                    break
+            except ValueError:
+                indices = [i for i in range(1,4,1)]
+                self.generar_tablas()
+                print(f"Porfavor Ingrese el numero/indice({indices} etc...).")
+        return selec_table
+    
     def opciones_crear(self):
         print("\nHas elegido Crear.")
         alm_query = self.query_gr_tabla()
         #Este bloque de codigo sirve para imprimir las tablas que hay en la base de datos.
-        contador = 0
-        for tablas in alm_query:
-            contador = contador + 1
-            print(f"{contador}.{''.join(tablas)}") 
-            
-        selec_table : str = int(input(f"¿A que tabla desea insertarle datos? "))
+        
+        select_table = self.funtion_selec_table()
         
         #Crear/Insertar
-        if selec_table == 1:
-            nom_empleado : str = input("Ingrese el nombre del empleado: ")
-            ape_part_empleado : str = input(f"Ingrese el apellido_paterno de {nom_empleado}: ")
-            ape_mart_empleado : str = input(f"Ingrese el apellido_materno de {nom_empleado}: ")
-            edad_empleado : str = input(f"Ingrese la edad del empleado: ")
-            salario_empleado : int = int(input(f"Ingrese el salario: "))
+        if select_table == 1:
+            print("\nINSERTA LOS DATOS CORRESPONDIENTE:")
+            nom_empleado : str = input("\tIngrese el nombre del empleado: ")
+            ape_part_empleado : str = input(f"\tIngrese el apellido_paterno de {nom_empleado}: ")
+            ape_mart_empleado : str = input(f"\tIngrese el apellido_materno de {nom_empleado}: ")
+            edad_empleado : str = input(f"\tIngrese la edad del empleado: ")
+            salario_empleado : int = int(input(f"\tIngrese el salario: "))
             self.cursor.execute(f"INSERT INTO "+"".join(alm_query[0])+f"(nombre_empleado, apellido_paterno, apellido_materno, edad, salario) VALUES('{nom_empleado}','{ape_part_empleado}','{ape_mart_empleado}','{edad_empleado}', '{salario_empleado}');")
             self.conn.commit()
+            print(f"Registro insertado.".upper())
     
     def opciones(self):
         while True:    
