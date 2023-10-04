@@ -1,100 +1,100 @@
 import sqlite3
 from conexion import Conexion
-import conexion
 
 class CRUD(Conexion):
     def __init__(self, name_db):
+        """Inicializa una instancia de la clase CRUD.
+
+        Args:
+            name_db (str): El nombre del archivo de base de datos SQLite."""
         super().__init__(name_db)
 
     def obtener_decision_seguir(self) -> int:
-        """Este retorna un input el cual te permite seguir o salir del CRUD."""
+        """Permite al usuario elegir si desea continuar con el proceso o salir del CRUD.
+
+        Returns:
+            int: 1 si el usuario desea continuar, 2 si el usuario desea salir."""
         while True:
-            while True:
-                try:
-                    seguir = int(input("\n¿Desea seguir con el proceso?:\nPara seguir, digite --> 1\nPara salir, digite --> 2\nIngrese su opción: "))
-                    
-                except ValueError:
-                    seguir = print("\nLa respuesta debe ser un entero del 1 al 2, animal (ㆆ_ㆆ).")
-                if isinstance(seguir, int):
-                    break
+            try:
+                seguir = int(input("\n¿Desea seguir con el proceso?\nPara seguir, digite --> 1\nPara salir, digite --> 2\nIngrese su opción: "))
+                if seguir in (1, 2):
+                    return seguir
                 else:
-                    continue
-            if seguir == 1 or seguir == 2:
-                break
-            else:
-                print("Respuesta invalida, intetalo.") 
-                continue   
-        return seguir
-            
+                    print("Respuesta inválida, inténtalo de nuevo.")
+            except ValueError:
+                print("La respuesta debe ser un número entero (1 o 2).")
 
     def query_gr_tabla(self):
-        """Busca las tablas que existen en la base de datos y retorna una lista con el nombre de las tablas."""
+        """Retorna la lista de nombres de tablas existentes en la base de datos.
+
+        Returns:
+            list: Una lista de nombres de tablas."""
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        query = self.cursor.fetchall()
-        return query
-    
-    def generar_tablas(self): #Agregar al codigo --> listo
-        """Esta toma todas las tablas contenidas por la funcion query_gr_tabla y las imprime."""
-        # Este bloque de codigo sirve para imprimir las tablas que hay en la base de datos.
-        imprimir_query = self.query_gr_tabla()
+        return self.cursor.fetchall()
+
+    def imprimir_tablas(self):
+        """Imprime los nombres de las tablas disponibles en la base de datos."""
+        tablas = self.query_gr_tabla()
         contador = 0
-        for tablas in imprimir_query:
-            contador = contador + 1
-            print(f"{contador}.{''.join(tablas)}")
+        for tabla in tablas:
+            contador += 1
+            print(f"{contador}.{''.join(tabla)}")
 
     def funtion_selec_table(self):
-        """Esta contiene un input el cual permitira elegir la tabla con la que quieres trabajar."""
-        while True:        
+        """Permite al usuario elegir la tabla con la que quiere trabajar.
+
+        Returns:
+            int: El número de la tabla seleccionada."""
+        while True:
             try:
-                selec_table : int = int(input(f"\n¿A que tabla desea insertarle datos? "))
+                selec_table = int(input(f"\n¿A qué tabla desea insertar datos? "))
                 if isinstance(selec_table, int):
-                    continue
+                    return selec_table
                 else:
-                    break
+                    print("Respuesta inválida, inténtalo de nuevo.")
             except ValueError:
-                indices = [i for i in range(1,4,1)]
-                self.generar_tablas()
-                print(f"Porfavor Ingrese el numero/indice({indices} etc...).")
-        return selec_table
-    
+                indices = [i for i in range(1, 4)]
+                self.imprimir_tablas()
+                print(f"Por favor, ingrese el número/índice ({indices}, etc.).")
+
     def opciones_crear(self):
+        """Permite al usuario crear un nuevo registro en la tabla seleccionada."""
         print("\nHas elegido Crear.")
-        alm_query = self.query_gr_tabla()
-        #Este bloque de codigo sirve para imprimir las tablas que hay en la base de datos.
-        
+        self.imprimir_tablas()
         select_table = self.funtion_selec_table()
-        
-        #Crear/Insertar
+
+        # Crear/Insertar
         if select_table == 1:
-            print("\nINSERTA LOS DATOS CORRESPONDIENTE:")
-            nom_empleado : str = input("\tIngrese el nombre del empleado: ")
-            ape_part_empleado : str = input(f"\tIngrese el apellido_paterno de {nom_empleado}: ")
-            ape_mart_empleado : str = input(f"\tIngrese el apellido_materno de {nom_empleado}: ")
-            edad_empleado : str = input(f"\tIngrese la edad del empleado: ")
-            salario_empleado : int = int(input(f"\tIngrese el salario: "))
-            self.cursor.execute(f"INSERT INTO "+"".join(alm_query[0])+f"(nombre_empleado, apellido_paterno, apellido_materno, edad, salario) VALUES('{nom_empleado}','{ape_part_empleado}','{ape_mart_empleado}','{edad_empleado}', '{salario_empleado}');")
+            print("\nINSERTA LOS DATOS CORRESPONDIENTES:")
+            nom_empleado = input("\tIngrese el nombre del empleado: ")
+            ape_part_empleado = input(f"\tIngrese el apellido paterno de {nom_empleado}: ")
+            ape_mart_empleado = input(f"\tIngrese el apellido materno de {nom_empleado}: ")
+            edad_empleado = input(f"\tIngrese la edad del empleado: ")
+            salario_empleado = int(input(f"\tIngrese el salario: "))
+            self.cursor.execute(f"INSERT INTO {''.join(self.query_gr_tabla()[0])}(nombre_empleado, apellido_paterno, apellido_materno, edad, salario) VALUES('{nom_empleado}','{ape_part_empleado}','{ape_mart_empleado}','{edad_empleado}', '{salario_empleado}');")
             self.conn.commit()
             print(f"Registro insertado.".upper())
-    
+
     def opciones(self):
-        while True:    
-            try:#Este bloque de codigo permite que el usuario ingrese una opción numérica, y si el usuario ingresa algo que no se puede convertir en un entero, se muestra un mensaje de error y se le da la oportunidad de ingresar una entrada válida.
+        """Ejecuta el menú principal del CRUD y gestiona las operaciones disponibles."""
+        while True:
+            try:
                 opcion = int(input("\n¿Qué quieres hacer hoy?\n1. Crear\n2. Leer\n3. Actualizar\n4. Eliminar\n5. Salir\n6. Buscar\nDijite su opcion: "))
             except ValueError:
-                    print("Debes elegir un número válido.")
-                    continue
-             
-            if  opcion== 1:
+                print("Debes elegir un número válido.")
+                continue
+
+            if opcion == 1:
                 self.opciones_crear()
                 decision_funcion = self.obtener_decision_seguir()
-                
+
                 if decision_funcion == 1:
-                   print("Haz elegido seguir.")
-                   continue
+                    print("Has elegido seguir.")
+                    continue
                 elif decision_funcion == 2:
-                   print("Haz salido del programa.")
-                   break
-               
+                    print("Has salido del programa.")
+                    break
+
             elif opcion == 2:
                 print("Has elegido Leer.")
 
