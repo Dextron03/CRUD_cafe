@@ -77,11 +77,10 @@ class CRUD(Conexion):
             print(f"Registro insertado.".upper())
         except (sqlite3.Error, ValueError) as e:
             print(f"Error al insertar el registro: {e}")
-
-    def seleccionar_columnas(self):
+    
+    def mostrar_columnas(self):
         """Permite al usuario seleccionar las columnas a mostrar."""
-        tabla_seleccionada = self.seleccionar_tabla()
-        self.cursor.execute(f"PRAGMA table_info({''.join(self.obtener_nombres_tablas()[tabla_seleccionada])});")
+        self.cursor.execute(f"PRAGMA table_info({''.join(self.obtener_nombres_tablas()[self.tabla_seleccionada])});")
         print("Elige las columnas que deseas ver:")
         lista_columnas = self.cursor.fetchall()
         lista_columnas.append([len(lista_columnas), "Todas"])
@@ -100,7 +99,7 @@ class CRUD(Conexion):
     def opcion_leer(self):
         """Permite al usuario consultar registros de la tabla seleccionada."""
         self.mostrar_tablas()
-        self.seleccionar_columnas()
+        self.mostrar_columnas()
         todas_columnas = []
         columnas_a_consultar = []
         while True:
@@ -134,12 +133,42 @@ class CRUD(Conexion):
         # Imprime los datos consultados en forma de tabla utilizando la biblioteca 'tabulate'
         tabla = tabulate(query.fetchall(), headers=columnas_a_consultar, tablefmt="fancy_grid" )
         print(tabla)
+        
+    def opcion_actualizar(self):
+        pass
+        # columna_actualizar : list = []
+        # self.mostrar_tablas()
+        # self.seleccionar_tabla()
+        # self.mostrar_columnas()
+        # while True:
+        #     columna_elecionada = self.seleccionar_columna()
+        #     if columna_elecionada == 0:
+        #         print("Los ID no  se pueden modificar.")
+        #     else:
+        #         break
+        # todas_columnas = self.cursor.execute(f"PRAGMA table_info({''.join(self.obtener_nombres_tablas()[self.tabla_seleccionada])});")
+        
+        # for columna in todas_columnas.fetchall():
+        #         columna_actualizar.append(columna[1])
+        # while True:
+        #     modificacion = 
+    def opcion_eliminar(self):
+        self.mostrar_tablas()
+        self.seleccionar_tabla()
+        self.mostrar_columnas()
+        selecionar_columna = self.seleccionar_columna()
+        # TODO Hacer un bloque de codigo que traiga todas las columnas de la tabla.
+        
+        
+        
+        
+        query = self.cursor.execute("DELETE FROM " +"".join(self.obtener_nombres_tablas()[self.tabla_seleccionada])+ " WHERE"+ +"="+ +";")# ? En cuanto puedas agrega los parametros faltantes entre los signos de mas
 
     def opciones(self):
         """Ofrece al usuario un menú de opciones para interactuar con la base de datos."""
         while True:
             try:
-                eleccion = int(input("\n¿Qué deseas hacer hoy?\n1. Crear\n2. Leer\n3. Actualizar\n4. Eliminar\n5. Salir\n6. Buscar\nIngrese su elección: "))
+                eleccion = int(input("\n¿Qué deseas hacer hoy?\n1. Crear\n2. Leer\n3. Actualizar\n4. Eliminar\n5. Salir\nIngrese su elección: "))
             except ValueError:
                 print("Debes elegir un número válido.")
                 continue
@@ -168,17 +197,17 @@ class CRUD(Conexion):
                     break
 
             elif eleccion == 3:
-                print("Has elegido Actualizar.")
+                print("\nHas elegido Actualizar.".upper())
+                self.opcion_actualizar()
 
             elif eleccion == 4:
-                print("Has elegido Eliminar.")
-
+                print("\nHas elegido Eliminar.".upper())
+                self.opcion_eliminar()
+                
             elif eleccion == 5:
                 print("Saliendo del programa.")
                 self.cerrar_conexion()
                 break
-            elif eleccion == 6:
-                print("Siguiendo con el programa.")
             else:
                 print("Opción no válida. Por favor, elige una opción válida.")
 
