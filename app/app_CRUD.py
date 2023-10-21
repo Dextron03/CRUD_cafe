@@ -69,6 +69,17 @@ class CRUD(Conexion):
         edad_empleado = input(f"\tIngrese la edad del empleado: ")
         salario_empleado = int(input(f"\tIngrese el salario: "))
 
+        if not nombre_empleado or not apellido_paterno_empleado or not apellido_materno_empleado or not edad_empleado or not salario_empleado:
+            print("Error: Todos los campos deben ser completados.")
+            return
+        
+        try:
+            edad_empleado = int(edad_empleado)
+            salario_empleado = int(salario_empleado)
+        except ValueError:
+            print("Error: La edad y el salario deben ser números enteros.")
+            return
+        
         try:
             # Crea un nuevo registro en la tabla seleccionada con los datos proporcionados
             self.cursor.execute(f"INSERT INTO {''.join(self.obtener_nombres_tablas()[tabla_seleccionada])}(nombre_empleado, apellido_paterno, apellido_materno, edad, salario) VALUES(?, ?, ?, ?, ?);",
@@ -99,6 +110,7 @@ class CRUD(Conexion):
     def opcion_leer(self):
         """Permite al usuario consultar registros de la tabla seleccionada."""
         self.mostrar_tablas()
+        self.seleccionar_tabla()
         self.mostrar_columnas()
         todas_columnas = []
         columnas_a_consultar = []
@@ -133,36 +145,34 @@ class CRUD(Conexion):
         # Imprime los datos consultados en forma de tabla utilizando la biblioteca 'tabulate'
         tabla = tabulate(query.fetchall(), headers=columnas_a_consultar, tablefmt="fancy_grid" )
         print(tabla)
-        
-    def opcion_actualizar(self):
-        pass
-        # columna_actualizar : list = []
-        # self.mostrar_tablas()
-        # self.seleccionar_tabla()
-        # self.mostrar_columnas()
-        # while True:
-        #     columna_elecionada = self.seleccionar_columna()
-        #     if columna_elecionada == 0:
-        #         print("Los ID no  se pueden modificar.")
-        #     else:
-        #         break
-        # todas_columnas = self.cursor.execute(f"PRAGMA table_info({''.join(self.obtener_nombres_tablas()[self.tabla_seleccionada])});")
-        
-        # for columna in todas_columnas.fetchall():
-        #         columna_actualizar.append(columna[1])
-        # while True:
-        #     modificacion = 
+
     def opcion_eliminar(self):
-        self.mostrar_tablas()
-        self.seleccionar_tabla()
-        self.mostrar_columnas()
-        selecionar_columna = self.seleccionar_columna()
-        # TODO Hacer un bloque de codigo que traiga todas las columnas de la tabla.
-        
-        
-        
-        
-        query = self.cursor.execute("DELETE FROM " +"".join(self.obtener_nombres_tablas()[self.tabla_seleccionada])+ " WHERE"+ +"="+ +";")# ? En cuanto puedas agrega los parametros faltantes entre los signos de mas
+        try:
+            self.mostrar_tablas()
+            self.seleccionar_tabla()
+            todas_columnas = []
+            while True:
+                query = self.cursor.execute(f"PRAGMA table_info({''.join(self.obtener_nombres_tablas()[self.tabla_seleccionada])});")
+
+                for columna in query.fetchall():
+                    todas_columnas.append(columna[1])
+                print("Debes eliminar según el ID: (La respuesta debe ser un entero)")
+                try:
+                    campo_eliminado = int(input("Qué campo desea eliminar: "))
+                except ValueError:
+                    print("Entrada inválida. Debe ingresar un número entero.")
+                    continue
+
+                # TODO Hacer un bloque de código que traiga todas las columnas de la tabla.
+                try:
+                    query = self.cursor.execute("DELETE FROM " + ''.join(self.obtener_nombres_tablas()[self.tabla_seleccionada]) + " WHERE " + todas_columnas[0] + " = ?", (campo_eliminado,))
+                    self.conn.commit()
+                    print("Registro eliminado con éxito.")
+                    break
+                except Exception as e:
+                    print("Error al eliminar el registro:", e)
+        except Exception as e:
+            print("Error general:", e)
 
     def opciones(self):
         """Ofrece al usuario un menú de opciones para interactuar con la base de datos."""
@@ -210,11 +220,3 @@ class CRUD(Conexion):
                 break
             else:
                 print("Opción no válida. Por favor, elige una opción válida.")
-
-if __name__ == "__main__":
-    try:
-        db_conex = CRUD('./db/cafe.db')
-        db_conex.abrir_conexion()
-        db_conex.opciones()
-    except sqlite3.Error as e:
-        print(f"Error al iniciar la aplicación: {e}")
